@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class LevelManager : MonoBehaviour
 {
-    [SerializeField]private GameObject tile;
+    [SerializeField]private GameObject[] tilePrefabs;
 
     public float TileSize
     {
-        get { return tile.GetComponent<SpriteRenderer>().sprite.bounds.size.x; }
+        get { return tilePrefabs[0].GetComponent<SpriteRenderer>().sprite.bounds.size.x; }
     }
     // Start is called before the first frame update
     void Start()
@@ -24,19 +24,28 @@ public class LevelManager : MonoBehaviour
 
     private void CreateLevel()
     {
-        Vector3 worldStart = Camera.main.ScreenToWorldPoint(new Vector3(0, Screen.height));
-        for (int y = 0; y < 10; y++)
+        string[] mapData = new string[]
         {
-            for (int x = 0; x < 10; x++)
+            "0000", "1111", "2222", "3333"
+        };
+        int mapSizeX = mapData[0].ToCharArray().Length;
+        int mapSizeY = mapData.Length;
+
+        Vector3 worldStart = Camera.main.ScreenToWorldPoint(new Vector3(0, Screen.height));
+        for (int y = 0; y < mapSizeY; y++)
+        {
+            char[] newTiles = mapData[y].ToCharArray();
+            for (int x = 0; x < mapSizeX; x++)
             {
-                PlaceTile(y, x, worldStart);
+                PlaceTile(newTiles[x].ToString(), y, x, worldStart);
             }
         }
     }
 
-    private void PlaceTile(int y, int x, Vector3 worldStart)
+    private void PlaceTile(string tileType, int y, int x, Vector3 worldStart)
     {
-        GameObject newTile = Instantiate(tile);
+        int tileIndex = int.Parse(tileType);
+        GameObject newTile = Instantiate(tilePrefabs[tileIndex]);
         newTile.transform.position = new Vector3(worldStart.x + (TileSize * x), worldStart.y - (TileSize * y), 0);
     }
 }
