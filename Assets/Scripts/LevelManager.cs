@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class LevelManager : MonoBehaviour
 {
     [SerializeField]private GameObject[] tilePrefabs;
+    [SerializeField]private CameraMovement CameraMovement;
 
     public float TileSize
     {
@@ -24,12 +26,11 @@ public class LevelManager : MonoBehaviour
 
     private void CreateLevel()
     {
-        string[] mapData = new string[]
-        {
-            "0000", "1111", "2222", "3333"
-        };
+        string[] mapData = ReadText();
         int mapSizeX = mapData[0].ToCharArray().Length;
         int mapSizeY = mapData.Length;
+        Vector3 maxTile = Vector3.zero;
+
 
         Vector3 worldStart = Camera.main.ScreenToWorldPoint(new Vector3(0, Screen.height));
         for (int y = 0; y < mapSizeY; y++)
@@ -37,15 +38,26 @@ public class LevelManager : MonoBehaviour
             char[] newTiles = mapData[y].ToCharArray();
             for (int x = 0; x < mapSizeX; x++)
             {
-                PlaceTile(newTiles[x].ToString(), y, x, worldStart);
+               maxTile = PlaceTile(newTiles[x].ToString(), x, y, worldStart);
+
             }
         }
+
+        CameraMovement.SetLimits(new Vector3(maxTile.x + TileSize, maxTile.y - TileSize));
     }
 
-    private void PlaceTile(string tileType, int y, int x, Vector3 worldStart)
+    private Vector3 PlaceTile(string tileType, int x, int y, Vector3 worldStart)
     {
         int tileIndex = int.Parse(tileType);
         GameObject newTile = Instantiate(tilePrefabs[tileIndex]);
         newTile.transform.position = new Vector3(worldStart.x + (TileSize * x), worldStart.y - (TileSize * y), 0);
+        return newTile.transform.position;
+    }
+
+    private string[] ReadText()
+    {
+        TextAsset bindData = Resources.Load("Level") as TextAsset;
+        string data = bindData.text.Replace(Environment.NewLine, string.Empty);
+        return data.Split('-');
     }
 }
